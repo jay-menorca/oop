@@ -66,33 +66,37 @@ class Transaction
 	attr_accessor :salesItems, :salesTaxes, :totalPrice
 
 	def computeTaxesAndTotal
-		puts "\nComputing Taxex and Total..."
 		@salesTaxes = 0
 		@totalPrice = 0
 
 		@salesItems.each do |a|
-			@a = (SalesItem)a
-			totPrice = @a.price
-			tax = @a.isTaxable ? @a.price.to_f * 0.1 : 0
+			totPrice = a.price
+			tax = a.isTaxable ? a.price.to_f * 0.1 : 0
 			totPrice = totPrice + tax
-			if @a.isImported
-				addlTax = totPrice.to_f * 0.05
-				tax = tax + addlTax
-				totPrice = totPrice + addlTax
-				@salesTaxes = @salesTaxes + addlTax
+			if a.isImported
+				totTaxRate = a.isTaxable ? 0.15 : 0.05  
+				
+				tax = a.price.to_f * totTaxRate
+				totPrice = a.price.to_f + tax
+			
+				#@salesTaxes = @salesTaxes + addlTax
 			end
-			@salesTaxes = @salesTaxes + tax
-			@totalPrice = @totalPrice + totPrice
-			@a.price = totPrice
+			@salesTaxes = (@salesTaxes + tax)
+			@totalPrice = (@totalPrice + totPrice)
+			a.price = totPrice
 		end
 
 	end
 
 	def printReceipt
+		puts "\nPrinting Receipt...\n"
 		@salesItems.each do |a| 
-			puts "#{@a.quantity} #{@a.name} : #{@a.price}"
+			if a.isImported 
+				a.name = "imported " + a.name
+			end
+			puts "#{a.quantity} #{a.name} : #{"%.2f" % a.price}"
 		end
-		puts "Sales Taxes: #{@salesTaxes}\nTotal: #{@totalPrice}"
+		puts "Sales Taxes: #{"%.2f" % salesTaxes}\nTotal: #{"%.2f" % totalPrice}"
 	end
 end
 
@@ -103,6 +107,7 @@ end
 #1 music CD at 14.99
 #1 chocolate bar at 0.85
 
+#1st transaction ------------------------------------------------------
 	aBook = SalesItem.new(false, false, 1, 12.49, "book")
 	aMusicCD = SalesItem.new(false, true, 1, 14.99, "music CD")
 	aChocoBar = SalesItem.new(false, false, 1, 0.85, "chocolate bar")
@@ -111,4 +116,24 @@ end
 	transaction1.salesItems = [aBook, aMusicCD, aChocoBar]
 	transaction1.computeTaxesAndTotal
 	transaction1.printReceipt
+
+#2nd transaction --------------------------------------------------------
+	boxOfChoco = SalesItem.new(true, false, 1, 10.00, "box of chocolates")
+	perfume = SalesItem.new(true, true, 1, 47.50, "bottle of perfume")
+	
+	transaction2 = Transaction.new
+	transaction2.salesItems = [boxOfChoco, perfume]
+	transaction2.computeTaxesAndTotal
+	transaction2.printReceipt
+
+#3nd transaction --------------------------------------------------------
+	importedPerfume = SalesItem.new(true, true, 1, 27.99, "bottle of perfume")
+	perfume = SalesItem.new(false, true, 1, 18.99, "bottle of perfume")
+	pills = SalesItem.new(false, false, 1, 9.75, "packet of headache pills")
+	choco = SalesItem.new(true, false,1, 11.25, "box of chocolates")
+
+	transaction3 = Transaction.new
+	transaction3.salesItems = [importedPerfume, perfume, pills, choco]
+	transaction3.computeTaxesAndTotal
+	transaction3.printReceipt
 #end
