@@ -73,7 +73,11 @@ class Transaction
 end
 
 class PaymentProcessor
-	@transaction
+	attr_accessor :transaction
+	#@transaction
+	def initialize(transaction)
+		@transaction = transaction
+	end
 
 	def printReceipt()
 		puts "\nPrinting Receipt...\n"
@@ -86,8 +90,7 @@ class PaymentProcessor
 		puts "Sales Taxes: #{"%.2f" % @transaction.salesTaxes}\nTotal: #{"%.2f" % @transaction.totalPrice}"
 	end
 
-	def processTransanction(transaction)
-		@transaction = transaction
+	def processTransanction()
 		
 		@transaction.salesItems.each do |a|
 			totPrice = a.price
@@ -119,21 +122,22 @@ end
 #1 chocolate bar at 0.85
 
 #1st transaction ------------------------------------------------------
-	cashCounter = PaymentProcessor.new
-
+	
 	aBook = SalesItem.new(false, false, 1, 12.49, "book")
 	aMusicCD = SalesItem.new(false, true, 1, 14.99, "music CD")
 	aChocoBar = SalesItem.new(false, false, 1, 0.85, "chocolate bar")
 
 	transaction1 = Transaction.new([aBook, aMusicCD, aChocoBar])
-	cashCounter.processTransanction(transaction1)
+	cashCounter = PaymentProcessor.new(transaction1)
+	cashCounter.processTransanction()
 
 #2nd transaction --------------------------------------------------------
 	boxOfChoco = SalesItem.new(true, false, 1, 10.00, "box of chocolates")
 	perfume = SalesItem.new(true, true, 1, 47.50, "bottle of perfume")
 	
 	transaction2 = Transaction.new([boxOfChoco, perfume])
-	cashCounter.processTransanction(transaction2)
+	cashCounter.transaction = transaction2
+	cashCounter.processTransanction()
 
 #3nd transaction --------------------------------------------------------
 	importedPerfume = SalesItem.new(true, true, 1, 27.99, "bottle of perfume")
@@ -142,5 +146,6 @@ end
 	choco = SalesItem.new(true, false,1, 11.25, "box of chocolates")
 
 	transaction3 = Transaction.new([importedPerfume, perfume, pills, choco])
-	cashCounter.processTransanction(transaction3)
+	cashCounter.transaction = transaction3
+	cashCounter.processTransanction()
 #end
