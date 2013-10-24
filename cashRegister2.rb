@@ -65,11 +65,31 @@ end
 class Transaction
 	attr_accessor :salesItems, :salesTaxes, :totalPrice
 
-	def computeTaxesAndTotal
+	def initialize(salesItems)
+		@salesItems = salesItems
 		@salesTaxes = 0
 		@totalPrice = 0
+	end
+end
 
-		@salesItems.each do |a|
+class PaymentProcessor
+	@transaction
+
+	def printReceipt()
+		puts "\nPrinting Receipt...\n"
+		@transaction.salesItems.each do |a| 
+			if a.isImported 
+				a.name = "imported " + a.name
+			end
+			puts "#{a.quantity} #{a.name} : #{"%.2f" % a.price}"
+		end
+		puts "Sales Taxes: #{"%.2f" % @transaction.salesTaxes}\nTotal: #{"%.2f" % @transaction.totalPrice}"
+	end
+
+	def processTransanction(transaction)
+		@transaction = transaction
+		
+		@transaction.salesItems.each do |a|
 			totPrice = a.price
 			tax = a.isTaxable ? a.price.to_f * 0.1 : 0
 			totPrice = totPrice + tax
@@ -81,43 +101,39 @@ class Transaction
 			
 				#@salesTaxes = @salesTaxes + addlTax
 			end
-			@salesTaxes = (@salesTaxes + tax)
-			@totalPrice = (@totalPrice + totPrice)
+			@transaction.salesTaxes = @transaction.salesTaxes + tax
+			@transaction.totalPrice = @transaction.totalPrice + totPrice
 			a.price = totPrice
 		end
-
+		self.printReceipt
 	end
 
-	def printReceipt
-		puts "\nPrinting Receipt...\n"
-		@salesItems.each do |a| 
-			if a.isImported 
-				a.name = "imported " + a.name
-			end
-			puts "#{a.quantity} #{a.name} : #{"%.2f" % a.price}"
-		end
-		puts "Sales Taxes: #{"%.2f" % salesTaxes}\nTotal: #{"%.2f" % totalPrice}"
-	end
+
 end
 
+#class TestTransaction
+
+#Input 1:
+#1 book at 12.49
+#1 music CD at 14.99
+#1 chocolate bar at 0.85
+
 #1st transaction ------------------------------------------------------
+	cashCounter = PaymentProcessor.new
+
 	aBook = SalesItem.new(false, false, 1, 12.49, "book")
 	aMusicCD = SalesItem.new(false, true, 1, 14.99, "music CD")
 	aChocoBar = SalesItem.new(false, false, 1, 0.85, "chocolate bar")
 
-	transaction1 = Transaction.new
-	transaction1.salesItems = [aBook, aMusicCD, aChocoBar]
-	transaction1.computeTaxesAndTotal
-	transaction1.printReceipt
+	transaction1 = Transaction.new([aBook, aMusicCD, aChocoBar])
+	cashCounter.processTransanction(transaction1)
 
 #2nd transaction --------------------------------------------------------
 	boxOfChoco = SalesItem.new(true, false, 1, 10.00, "box of chocolates")
 	perfume = SalesItem.new(true, true, 1, 47.50, "bottle of perfume")
 	
-	transaction2 = Transaction.new
-	transaction2.salesItems = [boxOfChoco, perfume]
-	transaction2.computeTaxesAndTotal
-	transaction2.printReceipt
+	transaction2 = Transaction.new([boxOfChoco, perfume])
+	cashCounter.processTransanction(transaction2)
 
 #3nd transaction --------------------------------------------------------
 	importedPerfume = SalesItem.new(true, true, 1, 27.99, "bottle of perfume")
@@ -125,8 +141,6 @@ end
 	pills = SalesItem.new(false, false, 1, 9.75, "packet of headache pills")
 	choco = SalesItem.new(true, false,1, 11.25, "box of chocolates")
 
-	transaction3 = Transaction.new
-	transaction3.salesItems = [importedPerfume, perfume, pills, choco]
-	transaction3.computeTaxesAndTotal
-	transaction3.printReceipt
+	transaction3 = Transaction.new([importedPerfume, perfume, pills, choco])
+	cashCounter.processTransanction(transaction3)
 #end
